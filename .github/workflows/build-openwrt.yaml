@@ -163,8 +163,14 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git remote add upstream $SOURCE_ORIGIN
-          git fetch upstream $SOURCE_BRANCH
-          git merge upstream/$SOURCE_BRANCH
+          git fetch upstream --tags
+          # Check if $SOURCE_BRANCH is a tag or branch
+          if git show-ref --tags | grep -q "refs/tags/$SOURCE_BRANCH$"; then
+            git checkout tags/$SOURCE_BRANCH -b $SOURCE_BRANCH
+          else
+            git fetch upstream $SOURCE_BRANCH
+            git merge upstream/$SOURCE_BRANCH
+          fi
           echo "OPENWRT_ROOT_PATH=$PWD" >> $GITHUB_ENV
           echo "OPENWRT_ROOT_PATH=$PWD" >> $GITHUB_OUTPUT
 
