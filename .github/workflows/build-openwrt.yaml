@@ -148,29 +148,37 @@ jobs:
       - name: Clone Source Code
         id: clone
         run: |
-          retry_count=0
-          until git clone --single-branch $SOURCE_URL -b $SOURCE_BRANCH workspace/openwrt || [ $retry_count -ge $MAX_RETRIES ]; do
-            retry_count=$((retry_count+1))
-            echo "Clone failed, retrying in $RETRY_DELAY seconds... ($retry_count/$MAX_RETRIES)"
-            sleep $RETRY_DELAY
-            rm -rf workspace/openwrt
-          done
-          if [ ! -d "workspace/openwrt" ]; then
+          if [[ "$SOURCE_BRANCH" == v* ]]; then
+            echo "Cloning specific tag: $SOURCE_BRANCH"
+            # Clone a shallow copy of a default branch first to get the repo
+            git clone --depth 1 $SOURCE_URL -b openwrt-23.05 workspace/openwrt
+            cd workspace/openwrt
+            # Fetch the specific tag from the origin
+            git fetch origin --depth 1 tag $SOURCE_BRANCH
+            # Checkout the tag
+            git checkout $SOURCE_BRANCH
+          else
+            echo "Cloning branch: $SOURCE_BRANCH"
+            # Use the original, efficient single-branch clone for branches
+            retry_count=0
+            until git clone --single-branch $SOURCE_URL -b $SOURCE_BRANCH workspace/openwrt || [ $retry_count -ge $MAX_RETRIES ]; do
+              retry_count=$((retry_count+1))
+              echo "Clone failed, retrying in $RETRY_DELAY seconds... ($retry_count/$MAX_RETRIES)"
+              sleep $RETRY_DELAY
+              rm -rf workspace/openwrt
+            done
+            cd workspace/openwrt
+          fi
+
+          if [ ! -d ".git" ]; then
             echo "Failed to clone repository after $MAX_RETRIES attempts"
             exit 1
           fi
-          cd workspace/openwrt
+          
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git remote add upstream $SOURCE_ORIGIN
-          git fetch upstream --tags
-          # Check if $SOURCE_BRANCH is a tag or branch
-          if git show-ref --tags | grep -q "refs/tags/$SOURCE_BRANCH$"; then
-            git checkout tags/$SOURCE_BRANCH -b $SOURCE_BRANCH
-          else
-            git fetch upstream $SOURCE_BRANCH
-            git merge upstream/$SOURCE_BRANCH
-          fi
+          git fetch upstream
           echo "OPENWRT_ROOT_PATH=$PWD" >> $GITHUB_ENV
           echo "OPENWRT_ROOT_PATH=$PWD" >> $GITHUB_OUTPUT
 
