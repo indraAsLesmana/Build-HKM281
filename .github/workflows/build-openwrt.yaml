@@ -26,6 +26,7 @@ on:
           - openwrt-22.03
           - openwrt-23.05
           - openwrt-24.10
+          - v24.10.2
       config_file:
         description: "Configuration File"
         type: choice
