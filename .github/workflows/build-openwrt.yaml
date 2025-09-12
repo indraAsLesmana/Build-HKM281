@@ -148,20 +148,26 @@ jobs:
       - name: Clone Source Code
         id: clone
         run: |
+          # Determine the correct repository to clone from
+          CLONE_URL="$SOURCE_URL"
           if [[ "$SOURCE_BRANCH" == v* ]]; then
-            echo "Cloning specific tag: $SOURCE_BRANCH"
-            # Clone a shallow copy of a default branch first to get the repo
-            git clone --depth 1 $SOURCE_URL -b openwrt-23.05 workspace/openwrt
+            echo "Version tag specified. Forcing clone from official OpenWrt repository."
+            CLONE_URL="$SOURCE_ORIGIN"
+          fi
+
+          echo "Cloning from: $CLONE_URL with branch/tag: $SOURCE_BRANCH"
+
+          # Perform the clone using the correct logic for branches vs tags
+          if [[ "$SOURCE_BRANCH" == v* ]]; then
+            # This is a TAG, use the official URL
+            git clone --depth 1 $CLONE_URL -b openwrt-23.05 workspace/openwrt
             cd workspace/openwrt
-            # Fetch the specific tag from the origin
             git fetch origin --depth 1 tag $SOURCE_BRANCH
-            # Checkout the tag
             git checkout $SOURCE_BRANCH
           else
-            echo "Cloning branch: $SOURCE_BRANCH"
-            # Use the original, efficient single-branch clone for branches
+            # This is a BRANCH, use the user-specified URL
             retry_count=0
-            until git clone --single-branch $SOURCE_URL -b $SOURCE_BRANCH workspace/openwrt || [ $retry_count -ge $MAX_RETRIES ]; do
+            until git clone --single-branch $CLONE_URL -b $SOURCE_BRANCH workspace/openwrt || [ $retry_count -ge $MAX_RETRIES ]; do
               retry_count=$((retry_count+1))
               echo "Clone failed, retrying in $RETRY_DELAY seconds... ($retry_count/$MAX_RETRIES)"
               sleep $RETRY_DELAY
@@ -174,7 +180,7 @@ jobs:
             echo "Failed to clone repository after $MAX_RETRIES attempts"
             exit 1
           fi
-          
+
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git remote add upstream $SOURCE_ORIGIN
