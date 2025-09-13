@@ -26,7 +26,7 @@ on:
           - openwrt-22.03
           - openwrt-23.05
           - openwrt-24.10
-          - v24.10.2
+          - Notion-r281
       config_file:
         description: "Configuration File"
         type: choice
@@ -148,43 +148,23 @@ jobs:
       - name: Clone Source Code
         id: clone
         run: |
-          # Determine the correct repository to clone from
-          CLONE_URL="$SOURCE_URL"
-          if [[ "$SOURCE_BRANCH" == v* ]]; then
-            echo "Version tag specified. Forcing clone from official OpenWrt repository."
-            CLONE_URL="$SOURCE_ORIGIN"
-          fi
-
-          echo "Cloning from: $CLONE_URL with branch/tag: $SOURCE_BRANCH"
-
-          # Perform the clone using the correct logic for branches vs tags
-          if [[ "$SOURCE_BRANCH" == v* ]]; then
-            # This is a TAG, use the official URL
-            git clone --depth 1 $CLONE_URL -b openwrt-23.05 workspace/openwrt
-            cd workspace/openwrt
-            git fetch origin --depth 1 tag $SOURCE_BRANCH
-            git checkout $SOURCE_BRANCH
-          else
-            # This is a BRANCH, use the user-specified URL
-            retry_count=0
-            until git clone --single-branch $CLONE_URL -b $SOURCE_BRANCH workspace/openwrt || [ $retry_count -ge $MAX_RETRIES ]; do
-              retry_count=$((retry_count+1))
-              echo "Clone failed, retrying in $RETRY_DELAY seconds... ($retry_count/$MAX_RETRIES)"
-              sleep $RETRY_DELAY
-              rm -rf workspace/openwrt
-            done
-            cd workspace/openwrt
-          fi
-
-          if [ ! -d ".git" ]; then
+          retry_count=0
+          until git clone --single-branch $SOURCE_URL -b $SOURCE_BRANCH workspace/openwrt || [ $retry_count -ge $MAX_RETRIES ]; do
+            retry_count=$((retry_count+1))
+            echo "Clone failed, retrying in $RETRY_DELAY seconds... ($retry_count/$MAX_RETRIES)"
+            sleep $RETRY_DELAY
+            rm -rf workspace/openwrt
+          done
+          if [ ! -d "workspace/openwrt" ]; then
             echo "Failed to clone repository after $MAX_RETRIES attempts"
             exit 1
           fi
-
+          cd workspace/openwrt
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git remote add upstream $SOURCE_ORIGIN
-          git fetch upstream
+          git fetch upstream $SOURCE_BRANCH
+          git merge upstream/$SOURCE_BRANCH
           echo "OPENWRT_ROOT_PATH=$PWD" >> $GITHUB_ENV
           echo "OPENWRT_ROOT_PATH=$PWD" >> $GITHUB_OUTPUT
 
@@ -369,13 +349,8 @@ jobs:
           cd $OPENWRT_ROOT_PATH
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          if [[ "$SOURCE_BRANCH" != v* ]]; then
-            echo "Updating branch $SOURCE_BRANCH from upstream..."
-            git fetch upstream $SOURCE_BRANCH
-            git merge upstream/$SOURCE_BRANCH
-          else
-            echo "Skipping update for fixed version tag $SOURCE_BRANCH."
-          fi
+          git fetch upstream $SOURCE_BRANCH
+          git merge upstream/$SOURCE_BRANCH
 
       - name: Load Custom Feeds
         run: |
@@ -394,7 +369,7 @@ jobs:
           ./scripts/feeds install -a
 
       - name: Replace Vermagic
-        if: ${{ env.VERMAGIC == 'true' && !startsWith(github.event.inputs.branch, 'v') }}
+        if: ${{ env.VERMAGIC == 'true' }}
         run: |
           snapshot_version="${SOURCE_BRANCH#openwrt-}"
           release_version=$(curl -s https://api.github.com/repos/openwrt/openwrt/tags \
