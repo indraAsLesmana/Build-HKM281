@@ -369,8 +369,13 @@ jobs:
           cd $OPENWRT_ROOT_PATH
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git fetch upstream $SOURCE_BRANCH
-          git merge upstream/$SOURCE_BRANCH
+          if [[ "$SOURCE_BRANCH" != v* ]]; then
+            echo "Updating branch $SOURCE_BRANCH from upstream..."
+            git fetch upstream $SOURCE_BRANCH
+            git merge upstream/$SOURCE_BRANCH
+          else
+            echo "Skipping update for fixed version tag $SOURCE_BRANCH."
+          fi
 
       - name: Load Custom Feeds
         run: |
@@ -389,7 +394,7 @@ jobs:
           ./scripts/feeds install -a
 
       - name: Replace Vermagic
-        if: ${{ env.VERMAGIC == 'true' }}
+        if: ${{ env.VERMAGIC == 'true' && !startsWith(github.event.inputs.branch, 'v') }}
         run: |
           snapshot_version="${SOURCE_BRANCH#openwrt-}"
           release_version=$(curl -s https://api.github.com/repos/openwrt/openwrt/tags \
