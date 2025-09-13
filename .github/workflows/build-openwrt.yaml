@@ -18,7 +18,7 @@ on:
         description: "Source Repository URL"
         type: string
         required: true
-        default: "https://github.com/0x4C334E3438/openwrt"
+        default: "https://github.com/indraAsLesmana/openwrt"
       branch:
         description: "Source Branch"
         type: choice
@@ -26,7 +26,7 @@ on:
           - openwrt-22.03
           - openwrt-23.05
           - openwrt-24.10
-          - Notion-r281
+          - notion-openwrt-24.10.2
       config_file:
         description: "Configuration File"
         type: choice
