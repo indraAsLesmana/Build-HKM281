@@ -22,6 +22,7 @@ on:
       branch:
         description: "Source Branch"
         type: choice
+        default: "notion-openwrt-24.10.2"
         options:
           - openwrt-22.03
           - openwrt-23.05
@@ -257,11 +258,7 @@ jobs:
           fi
           cd $OPENWRT_ROOT_PATH
           make defconfig
-          
-      - name: Debug directory contents
-        run: |
-          ls -la $OPENWRT_PATH
-          
+      
       - name: Force dnsmasq-full selection
         run: |
           cd $OPENWRT_ROOT_PATH
