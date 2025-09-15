@@ -265,6 +265,9 @@ jobs:
           echo "CONFIG_PACKAGE_dnsmasq=n" >> .config
           echo "# CONFIG_PACKAGE_dnsmasq is not set" >> .config
           echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
+          echo "--- Verifying .config settings ---"
+          grep 'dnsmasq' .config
+          echo "------------------------------------"
 
       - name: Compile Tools
         if: ${{ env.REBUILD_CHECK == 'true' }}
