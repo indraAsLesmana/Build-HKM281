@@ -258,6 +258,13 @@ jobs:
           cd $OPENWRT_ROOT_PATH
           make defconfig
 
+      - name: Force dnsmasq-full selection
+        run: |
+          cd $OPENWRT_PATH
+          echo "CONFIG_PACKAGE_dnsmasq=n" >> .config
+          echo "# CONFIG_PACKAGE_dnsmasq is not set" >> .config
+          echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
+
       - name: Compile Tools
         if: ${{ env.REBUILD_CHECK == 'true' }}
         timeout-minutes: 60
