@@ -260,7 +260,7 @@ jobs:
 
       - name: Force dnsmasq-full selection
         run: |
-          cd $OPENWRT_PATH
+          cd $OPENWRT_ROOT_PATH
           echo "CONFIG_PACKAGE_dnsmasq=n" >> .config
           echo "# CONFIG_PACKAGE_dnsmasq is not set" >> .config
           echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
