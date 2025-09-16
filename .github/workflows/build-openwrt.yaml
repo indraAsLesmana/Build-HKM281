@@ -258,25 +258,7 @@ jobs:
           fi
           cd $OPENWRT_ROOT_PATH
           make defconfig
-      
-      - name: Force dnsmasq-full selection
-        run: |
-          cd $OPENWRT_ROOT_PATH
           
-          # Remove all existing lines related to dnsmasq and dnsmasq-full to avoid duplicates
-          sed -i '/CONFIG_DEFAULT_dnsmasq/d' .config
-          sed -i '/CONFIG_PACKAGE_dnsmasq/d' .config
-          sed -i '/CONFIG_PACKAGE_dnsmasq-full/d' .config
-
-          # Now, add the correct, desired configuration to the end of the file
-          echo "# CONFIG_PACKAGE_dnsmasq is not set" >> .config
-          echo "CONFIG_PACKAGE_dnsmasq-full=y" >> .config
-
-          # Verify the result. The output should now be clean and correct.
-          echo "--- Verifying .config settings ---"
-          grep 'dnsmasq' .config
-          echo "------------------------------------"
-
       - name: Compile Tools
         if: ${{ env.REBUILD_CHECK == 'true' }}
         timeout-minutes: 60
