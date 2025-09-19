@@ -81,7 +81,7 @@ env:
   VERMAGIC: ${{ github.event.inputs.replace_vermagic }}
   VERMAGIC_OPT: ${{ github.event.inputs.use_snapshot_vermagic }}
   TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  TZ: UTC
+  TZ: Asia/Jakarta
   MAX_RETRIES: 3
   RETRY_DELAY: 30
 
