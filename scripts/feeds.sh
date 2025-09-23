@@ -17,6 +17,7 @@ src-git xray https://github.com/yichya/luci-app-xray
 src-git v2raya https://github.com/v2rayA/v2raya-openwrt
 src-git zapret https://github.com/remittor/zapret-openwrt
 src-git openclash https://github.com/vernesong/OpenClash
+src-git passwall https://github.com/xiaorouji/openwrt-passwall
 EOF
 
 exit 0
