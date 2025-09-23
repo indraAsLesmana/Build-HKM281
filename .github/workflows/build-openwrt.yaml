@@ -22,12 +22,13 @@ on:
       branch:
         description: "Source Branch"
         type: choice
-        default: "notion-openwrt-24.10.2"
+        default: "notion-openwrt-24.10.3"
         options:
           - openwrt-22.03
           - openwrt-23.05
           - openwrt-24.10
           - notion-openwrt-24.10.2
+          - notion-openwrt-24.10.3
       config_file:
         description: "Configuration File"
         type: choice
